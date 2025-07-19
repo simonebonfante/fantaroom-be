@@ -31,13 +31,11 @@ Bid.init({
   },
   sessionId: {
     type: DataTypes.UUID,
-    allowNull: false,
-    references: { model: 'sessions', key: 'id' },
+    allowNull: false
   },
   userId: {
     type: DataTypes.UUID,
     allowNull: false,
-    references: { model: 'users', key: 'id' },
   },
   price: {
     type: DataTypes.INTEGER,

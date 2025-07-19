@@ -31,15 +31,11 @@ Session.init({
     primaryKey: true,
   },
   isActive: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
-  playerId: { type: DataTypes.UUID, allowNull: false, unique: true, references: { model: 'players', key: 'id' } },
+  playerId: { type: DataTypes.UUID, allowNull: false, unique: true },
   price: { type: DataTypes.INTEGER, allowNull: false },
   winnerId: { 
     type: DataTypes.UUID, 
-    allowNull: true,
-    references: {
-      model: 'users',
-      key: 'id'
-    }
+    allowNull: true
   },
 }, {
   sequelize,

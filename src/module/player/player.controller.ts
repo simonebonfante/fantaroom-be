@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import Player from '../../models/Player';
 import Session from '../../models/Session';
 import { startNewSession } from '../session/session.controller';
+import { notifyNewSession } from '../socket/socket.service';
 
 export async function getAllPlayers(_req: Request, res: Response) {
   try {
@@ -36,14 +37,15 @@ export async function getPlayerById(req: Request, res: Response) {
   }
 } 
 
-export async function launchPlayer(_: Request, res: Response) {
+export async function launchPlayer(req: Request, res: Response) {
+  const { role } = req.body;
   try {
     const activeSession = await Session.findOne({ where: { isActive: true } });
-    if (!activeSession) {
-      return res.status(404).json({ error: 'Nessuna sessione attiva trovata' });
+    if (activeSession) {
+      return res.status(404).json({ error: 'Sessione attiva trovata, impossibile lanciare un giocatore' });
     }
     let playerLaunched: Player | null = null;
-    const players = await Player.findAll({ where: { taken: false } });
+    const players = await Player.findAll({ where: { taken: false, role } });
     if (players.length === 0) {
       playerLaunched = null;
     } else {
@@ -56,6 +58,7 @@ export async function launchPlayer(_: Request, res: Response) {
       return res.status(404).json({ error: 'Nessun giocatore disponibile' });
     }
     const newSession = await startNewSession(playerLaunched.id);
+    notifyNewSession(newSession.id, playerLaunched.id);
     res.json({ player: playerLaunched, session: newSession });
   } catch (error) {
     console.error('Errore lancio giocatore:', error);

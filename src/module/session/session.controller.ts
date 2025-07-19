@@ -5,7 +5,7 @@ import Bid from '../../models/Bid';
 import Player from '../../models/Player';
 import { placeBidTx } from './session.service';
 import { getIO } from '../socket/index';
-import { notifyNewBid } from '../socket/socket.service';
+import { notifyNewBid, notifyWinner } from '../socket/socket.service';
 
 export async function declareWinner(_: Request, res: Response) {
   const activeSession = await Session.findOne({ where: { isActive: true } });
@@ -23,6 +23,7 @@ export async function declareWinner(_: Request, res: Response) {
   activeSession.winnerId = winner.id;
   activeSession.isActive = false;
   await activeSession.save();
+  notifyWinner(activeSession.id, winner.id);
   res.json({ message: 'Winner declared', winner });
 }
 
@@ -41,7 +42,7 @@ export async function placeBid(req: Request, res: Response) {
 export async function startNewSession(playerId: string) {
     const activeSession = await Session.findOne({ where: { isActive: true } });
     if (activeSession) {
-        throw new Error('Nessuna sessione attiva trovata');
+        throw new Error('Sessione attiva trovata, impossibile lanciare un giocatore');
     }
     const player = await Player.findByPk(playerId);
     if (!player) {
@@ -53,9 +54,28 @@ export async function startNewSession(playerId: string) {
 
 export async function getSession(req: Request, res: Response) {
   const { id } = req.params;
-  const session = await Session.findByPk(id);
+  const session = await Session.findByPk(id, { include: [{ model: Player, as: 'player' }, { model: Bid, as: 'bids' }] });
   if (!session) {
     return res.status(404).json({ error: 'Sessione non trovata' });
+  }
+  res.json({ session });
+}
+
+export async function getActiveSession(_: Request, res: Response) {
+  const session = await Session.findOne({ 
+    where: { isActive: true }, 
+    include: [
+      { model: Player, as: 'player' },
+      { 
+        model: Bid, 
+        as: 'bids',
+        where: { isLastBid: true },
+        required: false
+      }
+    ] 
+  });
+  if (!session) {
+    return res.status(404).json({ error: 'Nessuna sessione attiva trovata' });
   }
   res.json({ session });
 }
