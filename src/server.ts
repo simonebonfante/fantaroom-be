@@ -7,7 +7,6 @@ import dotenv from 'dotenv';
 import syncModels from './models/sync';
 import routes from './routes';
 
-import { setupSocket } from './socket';
 import { initSocket } from './module/socket';
 
 dotenv.config();
@@ -32,10 +31,8 @@ app.get('/', (_req, res) => {
   try {
     await syncModels();
 
-    setupSocket(io);
-
     const PORT = process.env.PORT || 3001;
-    server.listen(PORT, () => {
+    server.listen({ port: PORT, host: '0.0.0.0' }, () => {
       console.log(`Server listening on port ${PORT}`);
     });
   } catch (error) {

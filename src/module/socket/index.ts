@@ -9,6 +9,8 @@ export function initSocket(server: SocketIOServer) {
   // hook di connessione – puoi spostare qui la logica d’asta
   io.on('connection', (socket: Socket) => {
     console.log('🔌 User connected', socket.id);
+
+    socket.emit('welcome', 'Connesso!');
   });
 }
 

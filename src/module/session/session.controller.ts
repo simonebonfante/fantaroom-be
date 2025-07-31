@@ -23,7 +23,7 @@ export async function declareWinner(_: Request, res: Response) {
   activeSession.winnerId = winner.id;
   activeSession.isActive = false;
   await activeSession.save();
-  notifyWinner(activeSession.id, winner.id);
+  notifyWinner(activeSession.id, winner.id, winner.name, activeSession.price);
   res.json({ message: 'Winner declared', winner });
 }
 
@@ -31,7 +31,11 @@ export async function placeBid(req: Request, res: Response) {
   const { userId, price } = req.body;
   try {
     const newBid = await placeBidTx(userId, price);
-    notifyNewBid(newBid.sessionId, newBid.id, newBid.userId, newBid.price);
+    const user = await User.findByPk(newBid.userId);
+    if (!user) {
+      throw new Error('Utente non trovato');
+    }
+    notifyNewBid(newBid.sessionId, newBid.id, newBid.userId, user.name, newBid.price);
     res.json({ message: 'Bid placed', bid: newBid });
   } catch (error) {
     console.error(error);
@@ -70,7 +74,8 @@ export async function getActiveSession(_: Request, res: Response) {
         model: Bid, 
         as: 'bids',
         where: { isLastBid: true },
-        required: false
+        required: false,
+        include: [{ model: User, as: 'user' }]
       }
     ] 
   });
