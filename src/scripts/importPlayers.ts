@@ -20,7 +20,8 @@ async function importPlayers() {
     const name = row[3];
     const team = row[4];
     const value = parseInt(row[5]);
-    return { name, role, team, value };
+    const eid = row[6];
+    return { name, role, team, value, eid };
   });
 
   await sequelize.sync(); // ensure table exists

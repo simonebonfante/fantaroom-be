@@ -31,3 +31,11 @@ export function notifyWinner(sessionId: string, winnerId: string, winnerName: st
         price,
     });
 }
+
+export function notifySessionSkipped(sessionId: string) {
+    const io = getIO();
+    console.log('notify session-skipped', sessionId);
+    io.emit('session-skipped', {
+        sessionId,
+    });
+}

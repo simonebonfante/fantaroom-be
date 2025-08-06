@@ -7,13 +7,14 @@ interface PlayerAttributes {
   role: string;      // es: "P", "D", "C", "A"
   team: string;
   value: number;
+  eid: string;
   imageUrl?: string | null;
   taken: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 }
 
-interface PlayerCreationAttributes extends Optional<PlayerAttributes, 'id' | 'createdAt' | 'updatedAt' | 'imageUrl' | 'taken' | 'value'> {}
+interface PlayerCreationAttributes extends Optional<PlayerAttributes, 'id' | 'createdAt' | 'updatedAt' | 'imageUrl' | 'taken' | 'value' | 'eid'> {}
 
 class Player extends Model<PlayerAttributes, PlayerCreationAttributes> implements PlayerAttributes {
   public id!: string;
@@ -23,6 +24,7 @@ class Player extends Model<PlayerAttributes, PlayerCreationAttributes> implement
   public value!: number;
   public imageUrl!: string | null;
   public taken!: boolean;
+  public eid!: string;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }
@@ -39,6 +41,7 @@ Player.init({
   value: { type: DataTypes.INTEGER, allowNull: false },
   imageUrl: { type: DataTypes.STRING, allowNull: true },
   taken: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
+  eid: { type: DataTypes.STRING, allowNull: false },
 }, {
   sequelize,
   tableName: 'players',

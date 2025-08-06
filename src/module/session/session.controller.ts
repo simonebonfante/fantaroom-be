@@ -4,8 +4,7 @@ import User from '../../models/User';
 import Bid from '../../models/Bid';
 import Player from '../../models/Player';
 import { placeBidTx } from './session.service';
-import { getIO } from '../socket/index';
-import { notifyNewBid, notifyWinner } from '../socket/socket.service';
+import { notifyNewBid, notifySessionSkipped, notifyWinner } from '../socket/socket.service';
 
 export async function declareWinner(_: Request, res: Response) {
   const activeSession = await Session.findOne({ where: { isActive: true } });
@@ -83,4 +82,23 @@ export async function getActiveSession(_: Request, res: Response) {
     return res.status(404).json({ error: 'Nessuna sessione attiva trovata' });
   }
   res.json({ session });
+}
+
+export async function skipSession(_: Request, res: Response) {
+  const session = await Session.findOne({ where: { isActive: true } });
+  if (!session) {
+    return res.status(404).json({ error: 'Nessuna sessione attiva trovata' });
+  }
+  if (session.price !== 0) {
+    return res.status(400).json({ error: 'Sessione in corso, impossibile saltarla' });
+  }
+  session.isActive = false;
+  const player = await Player.findByPk(session.playerId);
+  if (player) {
+    player.taken = false;
+    await player.save();
+  }
+  await session.save();
+  notifySessionSkipped(session.id);
+  res.json({ message: 'Sessione saltata' });
 }
