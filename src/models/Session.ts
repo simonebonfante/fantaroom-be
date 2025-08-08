@@ -31,7 +31,7 @@ Session.init({
     primaryKey: true,
   },
   isActive: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
-  playerId: { type: DataTypes.UUID, allowNull: false, unique: true },
+  playerId: { type: DataTypes.UUID, allowNull: false },
   price: { type: DataTypes.INTEGER, allowNull: false },
   winnerId: { 
     type: DataTypes.UUID, 

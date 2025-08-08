@@ -5,6 +5,7 @@ import Bid from '../../models/Bid';
 import Player from '../../models/Player';
 import { placeBidTx } from './session.service';
 import { notifyNewBid, notifySessionSkipped, notifyWinner } from '../socket/socket.service';
+import { Op } from 'sequelize';
 
 export async function declareWinner(_: Request, res: Response) {
   const activeSession = await Session.findOne({ where: { isActive: true } });
@@ -101,4 +102,22 @@ export async function skipSession(_: Request, res: Response) {
   await session.save();
   notifySessionSkipped(session.id);
   res.json({ message: 'Sessione saltata' });
+}
+
+export async function assignSession(req: Request, res: Response) {
+  const { userId, price } = req.body;
+  const session = await Session.findOne({ where: { isActive: true, price: { [Op.gte]: 0 } } });
+  if (!session) {
+    return res.status(404).json({ error: 'Nessuna sessione attiva trovata' });
+  }
+  session.price = price;
+  session.isActive = false;
+  session.winnerId = userId;
+  await session.save();
+  const winner = await User.findByPk(userId);
+  if (!winner) {
+    return res.status(404).json({ error: 'Vincitore non trovato' });
+  }
+  notifyWinner(session.id, winner.id, winner.name, price);
+  res.json({ message: 'Sessione assegnata', session });
 }
