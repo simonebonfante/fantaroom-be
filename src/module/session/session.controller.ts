@@ -121,3 +121,14 @@ export async function assignSession(req: Request, res: Response) {
   notifyWinner(session.id, winner.id, winner.name, price);
   res.json({ message: 'Sessione assegnata', session });
 }
+
+export async function getCompletedSessions(_: Request, res: Response) {
+  const sessions = await Session.findAll({
+    where: { isActive: false, price: { [Op.gt]: 0 } }, 
+    include: [
+      { model: Player, as: 'player' }, 
+      { model: User, as: 'winner' },
+    ] 
+  });
+  res.json({ sessions });
+}
